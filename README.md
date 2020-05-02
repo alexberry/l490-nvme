@@ -31,9 +31,23 @@ netcat \
 unzip
 ```
 
+### Total disk wipe
+
+_This is an excerpt from a comment I made on the original [thread](https://www.reddit.com/r/linuxquestions/comments/g88hhs/need_help_installing_ubuntu/)._
+
+1. Launch a live usb
+2. Launch a terminal and run “sudo gdisk -l” and find and note down the name of your main disk, use this in step 2
+3. On the assumption your disk is “/dev/nvme0n1” (your screenshots suggest this is the device name) run “sudo gdisk /dev/nvme0n1”
+4. In gdisk, press “x” (expert mode)
+5. In gdisk, press “z” (zap) and respond yes to all questions- this will remove both gpt and mbr partition tables
+6. Quit gdisk
+7. Reboot
+
+Your disk should now be as blank as is possible without writing zeroes across the whole disk.
+
 ### Logs
 
-__Please make sure to install [Required packages](#Required-packages) before following this process.__
+__Please make sure to install [Required packages](#required-packages) before following this process.__
 
 During diagnostics on a live usb we ran the following commands to ship logs to [seashells](https://seashells.io):
 
@@ -70,7 +84,7 @@ To ensure BIOS firmware was not the issue, we chose to perform a bios update.
 
 #### Thinkpad L490 BIOS Updates
 
-__Please make sure to install [Required packages](#Required-packages) before following this process.__
+__Please make sure to install [Required packages](#required-packages) before following this process.__
 
 The L490 does not have a CD drive, and yet the only way Lenovo provide to update firmware outside of Windows is a non-USB iso file available (available at time of writing [here](https://download.lenovo.com/pccbbs/mobiles/r0zuj12wd.iso)). Thanks Lenovo.
 
@@ -93,7 +107,9 @@ This successfully updated the BIOS, however did not resolve the issue.
 
 #### Intel nvme SSD790 firmware Updates
 
-__Please make sure to install [Required packages](#Required-packages) before following this process.__
+_Unfortunately, the same bug that we are trying to fix seemingly causes the linux-based updater to fail. If you have access to another machine with a spare m.2 nvme slot available, however, this step may still be useful in resolving your issue and so will be left here._
+
+__Please make sure to install [Required packages](#required-packages) before following this process.__
 
 Lenovo do provide firmware updates for this SSD, however again they are only available in Windows guise. Intel themselves do, however, provide a linux-friendly USB-Bootable iso image [here](https://downloadcenter.intel.com/download/29248/Intel-SSD-Firmware-Update-Tool). This can be downloaded, extracted, and written to usb:
 
@@ -107,5 +123,3 @@ sudo dd if=issdfut_64_3.0.8.iso of=/dev/sdb bs=1m
 # sync disk before unplugging
 sync
 ```
-
-Unfortunately, the same bug that we are trying to fix seemingly causes the linux-based updater to fail. If you have access to another machine with a spare m.2 nvme slot available, however, this step may still be useful in resolving your issue and so will be left here.
