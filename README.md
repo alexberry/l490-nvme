@@ -31,20 +31,6 @@ netcat \
 unzip
 ```
 
-### Total disk wipe
-
-_This is an excerpt from a comment I made on the original [thread](https://www.reddit.com/r/linuxquestions/comments/g88hhs/need_help_installing_ubuntu/)._
-
-1. Launch a live usb
-2. Launch a terminal and run “sudo gdisk -l” and find and note down the name of your main disk, use this in step 2
-3. On the assumption your disk is “/dev/nvme0n1” (your screenshots suggest this is the device name) run “sudo gdisk /dev/nvme0n1”
-4. In gdisk, press “x” (expert mode)
-5. In gdisk, press “z” (zap) and respond yes to all questions- this will remove both gpt and mbr partition tables
-6. Quit gdisk
-7. Reboot
-
-Your disk should now be as blank as is possible without writing zeroes across the whole disk.
-
 ### Logs
 
 __Please make sure to install [Required packages](#required-packages) before following this process.__
@@ -78,13 +64,79 @@ curl https://seashells.io/p/s5SeWhbp > journalctl.log
 * [journalctl.log](./logs/journalctl.log)
 * [lspci.log](./logs/lspci.log)
 
+### Confirming hardware Model
+
+To confirm the machine is an L490, we used output from [dmidecode.log](./logs/dmidecode.log). The pertinent excerpt is here:
+
+```
+Handle 0x0012, DMI type 1, 27 bytes
+System Information
+	Manufacturer: LENOVO
+	Product Name: 20Q5S0M600
+	Version: ThinkPad L490
+	Serial Number: PG01TCJ4
+	UUID: 8dd060cc-26f9-11b2-a85c-f3a05d5236c9
+	Wake-up Type: Power Switch
+	SKU Number: LENOVO_MT_20Q5_BU_SMB_FM_ThinkPad L490
+	Family: ThinkPad L490
+```
+
+### Total disk wipe
+
+_This is an excerpt from a comment I made on the original [thread](https://www.reddit.com/r/linuxquestions/comments/g88hhs/need_help_installing_ubuntu/)._
+
+1. Launch a live usb
+2. Launch a terminal and run “sudo gdisk -l” and find and note down the name of your main disk, use this in step 2
+3. On the assumption your disk is “/dev/nvme0n1” (your screenshots suggest this is the device name) run “sudo gdisk /dev/nvme0n1”
+4. In gdisk, press “x” (expert mode)
+5. In gdisk, press “z” (zap) and respond yes to all questions- this will remove both gpt and mbr partition tables
+6. Quit gdisk
+7. Reboot
+
+Your disk should now be as blank as is possible without writing zeroes across the whole disk.
+
 ### Firmware Updates
 
-To ensure BIOS firmware was not the issue, we chose to perform a bios update.
+To ensure firmware was not the issue, we chose to attempt a bios + ssd firmware update.
 
 #### Thinkpad L490 BIOS Updates
 
 __Please make sure to install [Required packages](#required-packages) before following this process.__
+
+To confirm what version was currently running we used output from [dmidecode.log](./logs/dmidecode.log). The pertinent excerpt is here:
+
+```
+Handle 0x0011, DMI type 0, 26 bytes
+BIOS Information
+	Vendor: LENOVO
+	Version: R0ZET40W (1.18 )
+	Release Date: 03/24/2020
+	Address: 0xE0000
+	Runtime Size: 128 kB
+	ROM Size: 32 MB
+	Characteristics:
+		PCI is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		Boot from CD is supported
+		Selectable boot is supported
+		EDD is supported
+		3.5"/720 kB floppy services are supported (int 13h)
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Serial services are supported (int 14h)
+		Printer services are supported (int 17h)
+		CGA/mono video services are supported (int 10h)
+		ACPI is supported
+		USB legacy is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
+		UEFI is supported
+	BIOS Revision: 1.18
+	Firmware Revision: 1.15
+```
+The last two lines indicate the firmware versions, prior to an update they were at 1.11 and 1.12 respectively.
 
 The L490 does not have a CD drive, and yet the only way Lenovo provide to update firmware outside of Windows is a non-USB iso file available (available at time of writing [here](https://download.lenovo.com/pccbbs/mobiles/r0zuj12wd.iso)). Thanks Lenovo.
 
@@ -105,7 +157,7 @@ sync
 
 This successfully updated the BIOS, however did not resolve the issue.
 
-#### Intel nvme SSD790 firmware Updates
+#### Intel nvme SSD 790 firmware Updates
 
 _Unfortunately, the same bug that we are trying to fix seemingly causes the linux-based updater to fail. If you have access to another machine with a spare m.2 nvme slot available, however, this step may still be useful in resolving your issue and so will be left here._
 
@@ -123,3 +175,12 @@ sudo dd if=issdfut_64_3.0.8.iso of=/dev/sdb bs=1m
 # sync disk before unplugging
 sync
 ```
+
+#### NVME quirks kernel flag
+
+According to this [bug report](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=910069)
+
+## Sources
+
+### Bug report about Intel 790 SSD on linux
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=910069
